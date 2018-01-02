@@ -2,22 +2,44 @@
 
 class LiamW_PasswordRequirements_Model_ForcePasswordChange extends XenForo_Model
 {
+	/**
+	 * Inserts a record to force a password change for a user or all users.
+	 *
+	 * @param int $userId The user id of the user to force a password on, or 0 for all users.
+	 *
+	 * @throws \Zend_Db_Adapter_Exception
+	 */
 	public function forcePasswordChange($userId = 0)
 	{
 		$this->_getDb()->insert(
 			'liam_pr_force_change', array(
-				'user_id' => $userId,
+				'user_id'         => $userId,
 				'initiation_date' => XenForo_Application::$time
 			)
 		);
 	}
 
+	/**
+	 * Gets the user ids and initiation dates of users who've had a forced password change initiated.
+	 *
+	 * @return array [user_id => initiation_date]
+	 */
 	public function getUserBasedForcedChanges()
 	{
 		return $this->_getDb()
 			->fetchPairs('SELECT user_id,initiation_date FROM liam_pr_force_change WHERE user_id > 0');
 	}
 
+	/**
+	 * Performs the logic to check if a password change is required of a user. Checks force password changes (both user
+	 * specific and global), as well as expired passwords.
+	 *
+	 * @param string     $errorPhraseKey Passed by reference. The error message phrase key to display to the user when
+	 *                                   they're changing their password.
+	 * @param array|null $viewingUser
+	 *
+	 * @return bool
+	 */
 	public function isPasswordChangeRequired(&$errorPhraseKey, array $viewingUser = null)
 	{
 		$this->standardizeViewingUserReference($viewingUser);

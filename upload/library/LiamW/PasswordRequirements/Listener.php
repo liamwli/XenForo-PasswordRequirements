@@ -14,17 +14,18 @@ class LiamW_PasswordRequirements_Listener
 
 	public static function controllerPreDispatch(XenForo_Controller $controller, $action)
 	{
-		if ($controller instanceof XenForo_ControllerAdmin_Abstract || $controller instanceof XenForo_ControllerPublic_Error || ($controller instanceof XenForo_ControllerPublic_Account && ($action == 'Security' || $action = 'SecuritySave')))
-		{
-			return;
-		}
-
 		/** @var LiamW_PasswordRequirements_Model_ForcePasswordChange $forcePasswordChangeModel */
 		$forcePasswordChangeModel = XenForo_Model::create('LiamW_PasswordRequirements_Model_ForcePasswordChange');
 
 		if ($forcePasswordChangeModel->isPasswordChangeRequired($errorPhraseKey))
 		{
 			XenForo_Application::set('liam_forceChangeRequired', $errorPhraseKey);
+
+			// Do this here, so that we set the error message for the password template if we redirect.
+			if ($controller instanceof XenForo_ControllerAdmin_Abstract || $controller instanceof XenForo_ControllerPublic_Error || ($controller instanceof XenForo_ControllerPublic_Account && ($action == 'Security' || $action = 'SecuritySave')))
+			{
+				return;
+			}
 
 			throw $controller->responseException(
 				$controller->responseRedirect(XenForo_ControllerResponse_Redirect::SUCCESS,

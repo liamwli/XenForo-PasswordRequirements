@@ -35,7 +35,7 @@ class LiamW_PasswordRequirements_Installer
 	{
 		if (XenForo_Application::$versionId < 1040070)
 		{
-			$error = 'XenForo 1.4.0+ is required. Please upgrade and then install.';
+			$error = 'XenForo 1.4.0 (Stable) or above is required. You are running XenForo ' . XenForo_Application::$version . '. Please upgrade and then install.';
 
 			return false;
 		}
@@ -121,7 +121,8 @@ class LiamW_PasswordRequirements_Installer
 		try
 		{
 			$db->query($sql);
-		} catch (Zend_Db_Exception $e)
+		}
+		catch (Zend_Db_Exception $e)
 		{
 		}
 	}

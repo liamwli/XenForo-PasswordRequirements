@@ -83,7 +83,7 @@ class LiamW_PasswordRequirements_Extend_DataWriter_User extends XFCP_LiamW_Passw
 		if ($passwordCriteria['min_special'] || $passwordCriteria['max_special'])
 		{
 			if (!preg_match_all('#[^\w]#iu', $password,
-					$matches) || count($matches[0]) < $passwordCriteria['min_special'] || count($matches[0]) > $passwordCriteria['max_special']
+					$matches) || count($matches[0]) < $passwordCriteria['min_special'] || ($passwordCriteria['max_special'] && count($matches[0]) > $passwordCriteria['max_special'])
 			)
 			{
 				$errors[] = new XenForo_Phrase('liam_passwordRequirements_must_contain_between_x_and_x_special_characters',
