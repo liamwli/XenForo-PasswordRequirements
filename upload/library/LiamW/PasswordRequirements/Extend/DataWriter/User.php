@@ -126,11 +126,13 @@ class LiamW_PasswordRequirements_Extend_DataWriter_User extends XFCP_LiamW_Passw
 
 		if ($this->isChanged('data', 'xf_user_authenticate'))
 		{
+			$method = ($this->isInsert() ? 'getNew' : 'getExisting');
+
 			$this->_db->insert('liam_pr_password_history', array(
 				'user_id' => $this->get('user_id'),
 				'change_date' => XenForo_Application::$time,
-				'scheme_class' => $this->getExisting('scheme_class'),
-				'data' => $this->getExisting('data', 'xf_user_authenticate')
+				'scheme_class' => $this->$method('scheme_class'),
+				'data' => $this->$method('data', 'xf_user_authenticate')
 			));
 		}
 	}
