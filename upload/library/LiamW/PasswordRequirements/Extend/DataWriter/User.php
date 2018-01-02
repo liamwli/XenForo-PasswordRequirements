@@ -4,7 +4,9 @@ class LiamW_PasswordRequirements_Extend_DataWriter_User extends XFCP_LiamW_Passw
 {
 	public function setPassword($password, $passwordConfirm = false, XenForo_Authentication_Abstract $auth = null, $requirePassword = false)
 	{
-		if (XenForo_Visitor::getUserId() != $this->get('user_id') && $this->isUpdate())
+		if ($this->getOption(self::OPTION_ADMIN_EDIT) || ($this->isUpdate() && XenForo_Visitor::getUserId() == $this->get('user_id') && XenForo_Visitor::getInstance()
+					->hasPermission('general', 'lw_bypassPr'))
+		)
 		{
 			return parent::setPassword($password, $passwordConfirm, $auth, $requirePassword);
 		}
@@ -30,8 +32,6 @@ class LiamW_PasswordRequirements_Extend_DataWriter_User extends XFCP_LiamW_Passw
 
 			$historicPasswords = $forcePasswordChangeModel->getHistoricPasswordDataForUser($userId,
 				$historyPasswords);
-
-			//var_dump($historicPasswords);
 
 			foreach ($historicPasswords AS $historicPassword)
 			{
@@ -75,6 +75,29 @@ class LiamW_PasswordRequirements_Extend_DataWriter_User extends XFCP_LiamW_Passw
 			}
 		}
 
+		if ($passwordCriteria['min_special'] || $passwordCriteria['max_special'])
+		{
+			if (preg_match_all('#[^\w]#iu', $password, $matches))
+			{
+				if (count($matches[0]) < $passwordCriteria['min_special'] || count($matches[0]) > $passwordCriteria['max_special'])
+				{
+					$errors[] = new XenForo_Phrase('liam_passwordRequirements_must_contain_between_x_and_x_special_characters',
+						array(
+							'min' => $passwordCriteria['min_special'],
+							'max' => $passwordCriteria['max_special']
+						));
+				}
+			}
+			else if ($passwordCriteria['min_special'])
+			{
+				$errors[] = new XenForo_Phrase('liam_passwordRequirements_must_contain_between_x_and_x_special_characters',
+					array(
+						'min' => $passwordCriteria['min_special'],
+						'max' => $passwordCriteria['max_special']
+					));
+			}
+		}
+
 		try
 		{
 			if ($passwordCriteria['regex'])
@@ -86,7 +109,7 @@ class LiamW_PasswordRequirements_Extend_DataWriter_User extends XFCP_LiamW_Passw
 			}
 		} catch (ErrorException $e)
 		{
-			XenForo_Error::logException($e);
+			XenForo_Error::logException($e, false, 'Error while checking password regex match: ');
 		}
 
 		if ($passwordCriteria['complex'])
