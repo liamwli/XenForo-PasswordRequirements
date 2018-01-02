@@ -11,12 +11,10 @@ class LiamW_PasswordRequirements_Model_ForcePasswordChange extends XenForo_Model
 	 */
 	public function forcePasswordChange($userId = 0)
 	{
-		$this->_getDb()->insert(
-			'liam_pr_force_change', array(
-				'user_id'         => $userId,
-				'initiation_date' => XenForo_Application::$time
-			)
-		);
+		$this->_getDb()->insert('liam_pr_force_change', array(
+			'user_id'         => $userId,
+			'initiation_date' => XenForo_Application::$time
+		));
 	}
 
 	/**
@@ -26,8 +24,7 @@ class LiamW_PasswordRequirements_Model_ForcePasswordChange extends XenForo_Model
 	 */
 	public function getUserBasedForcedChanges()
 	{
-		return $this->_getDb()
-			->fetchPairs('SELECT user_id,initiation_date FROM liam_pr_force_change WHERE user_id > 0');
+		return $this->_getDb()->fetchPairs('SELECT user_id,initiation_date FROM liam_pr_force_change WHERE user_id > 0');
 	}
 
 	/**
@@ -51,13 +48,10 @@ class LiamW_PasswordRequirements_Model_ForcePasswordChange extends XenForo_Model
 
 		$changeRequired = false;
 
-		if ($this->_getDb()
-			->fetchOne("SELECT COUNT(*) FROM liam_pr_force_change WHERE (user_id=? OR user_id=0) AND initiation_date>?",
-				array(
-					$viewingUser['user_id'],
-					$viewingUser['password_date']
-				)
-			)
+		if ($this->_getDb()->fetchOne("SELECT COUNT(*) FROM liam_pr_force_change WHERE (user_id=? OR user_id=0) AND initiation_date>?", array(
+			$viewingUser['user_id'],
+			$viewingUser['password_date']
+		))
 		)
 		{
 			$changeRequired = true;
@@ -80,8 +74,28 @@ class LiamW_PasswordRequirements_Model_ForcePasswordChange extends XenForo_Model
 
 	public function getHistoricPasswordDataForUser($userId, $limit)
 	{
-		return $this->_getDb()
-			->fetchAll($this->limitQueryResults('SELECT scheme_class,data FROM liam_pr_password_history WHERE user_id=? ORDER BY change_date DESC',
-				$limit), $userId);
+		return $this->_getDb()->fetchAll($this->limitQueryResults('SELECT scheme_class,data FROM liam_pr_password_history WHERE user_id=? ORDER BY change_date DESC', $limit), $userId);
+	}
+
+	/**
+	 * Changes a user's password method to NoPassword preventing login.
+	 *
+	 * @param int  $userId         ID of user to reset password.
+	 * @param bool $sendResetEmail If true, send password reset email.
+	 */
+	public function forcePasswordReset($userId, $sendResetEmail = false)
+	{
+		/** @var XenForo_DataWriter_User $userDw */
+		$userDw = XenForo_DataWriter::create('XenForo_DataWriter_User');
+		$userDw->setExistingData($userId);
+		$userDw->setPassword(false, false, new XenForo_Authentication_NoPassword());
+		$userDw->save();
+
+		if ($sendResetEmail)
+		{
+			/** @var XenForo_Model_UserConfirmation $userConfirmationModel */
+			$userConfirmationModel = $this->getModelFromCache('XenForo_Model_UserConfirmation');
+			$userConfirmationModel->sendPasswordResetRequest($userDw->getMergedData());
+		}
 	}
 }

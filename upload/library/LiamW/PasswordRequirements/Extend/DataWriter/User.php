@@ -4,7 +4,8 @@ class LiamW_PasswordRequirements_Extend_DataWriter_User extends XFCP_LiamW_Passw
 {
 	public function setPassword($password, $passwordConfirm = false, XenForo_Authentication_Abstract $auth = null, $requirePassword = false)
 	{
-		if ($this->getOption(self::OPTION_ADMIN_EDIT) || ($this->isUpdate() && XenForo_Visitor::getInstance()->hasPermission('general', 'lw_bypassPr')))
+		// Allow admins to set unauthorised password, allow NoPassword method (cannot login with any password) and allow users' with bypass permission.
+		if ($this->getOption(self::OPTION_ADMIN_EDIT) || ($auth instanceof XenForo_Authentication_NoPassword) || ($this->isUpdate() && XenForo_Visitor::getInstance()->hasPermission('general', 'lw_bypassPr')))
 		{
 			return parent::setPassword($password, $passwordConfirm, $auth, $requirePassword);
 		}
