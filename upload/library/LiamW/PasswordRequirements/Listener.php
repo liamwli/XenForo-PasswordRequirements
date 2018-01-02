@@ -24,6 +24,8 @@ class LiamW_PasswordRequirements_Listener
 
 		if ($forcePasswordChangeModel->isPasswordChangeRequired($errorPhraseKey))
 		{
+			XenForo_Application::set('liam_forceChangeRequired', $errorPhraseKey);
+
 			throw $controller->responseException(
 				$controller->responseRedirect(XenForo_ControllerResponse_Redirect::SUCCESS,
 					XenForo_Link::buildPublicLink('account/security'),
@@ -34,13 +36,10 @@ class LiamW_PasswordRequirements_Listener
 
 	public static function controllerPostDispatch(XenForo_Controller $controller, $controllerResponse, $controllerName, $action)
 	{
-		/** @var LiamW_PasswordRequirements_Model_ForcePasswordChange $forcePasswordChangeModel */
-		$forcePasswordChangeModel = XenForo_Model::create('LiamW_PasswordRequirements_Model_ForcePasswordChange');
-
-		if ($action == 'Security' && $controllerResponse instanceof XenForo_ControllerResponse_View && $forcePasswordChangeModel->isPasswordChangeRequired($errorPhraseKey)
+		if ($action == 'Security' && $controllerResponse instanceof XenForo_ControllerResponse_View && XenForo_Application::isRegistered('liam_forceChangeRequired')
 		)
 		{
-			$controllerResponse->subView->params['forceText'] = new XenForo_Phrase($errorPhraseKey);
+			$controllerResponse->subView->params['forceText'] = new XenForo_Phrase(XenForo_Application::get('liam_forceChangeRequired'));
 		}
 	}
 }

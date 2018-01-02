@@ -4,7 +4,7 @@ class LiamW_PasswordRequirements_Extend_DataWriter_User extends XFCP_LiamW_Passw
 {
 	public function setPassword($password, $passwordConfirm = false, XenForo_Authentication_Abstract $auth = null, $requirePassword = false)
 	{
-		if ($this->getOption(self::OPTION_ADMIN_EDIT) || ($this->isUpdate() && XenForo_Visitor::getUserId() == $this->get('user_id') && XenForo_Visitor::getInstance()
+		if ($this->getOption(self::OPTION_ADMIN_EDIT) || ($this->isUpdate() && XenForo_Visitor::getInstance()
 					->hasPermission('general', 'lw_bypassPr'))
 		)
 		{
@@ -17,6 +17,11 @@ class LiamW_PasswordRequirements_Extend_DataWriter_User extends XFCP_LiamW_Passw
 		$forcePasswordChangeModel = XenForo_Model::create('LiamW_PasswordRequirements_Model_ForcePasswordChange');
 
 		$errors = array();
+
+		if ($this->_getPasswordBlacklistModel()->isPasswordBlacklisted($password))
+		{
+			$errors[] = new XenForo_Phrase('liam_passwordRequirements_requested_password_blacklisted');
+		}
 
 		$auth = XenForo_Authentication_Abstract::create($this->getExisting('scheme_class'));
 		$auth->setData($this->get('data', 'xf_user_authenticate'));
@@ -77,18 +82,9 @@ class LiamW_PasswordRequirements_Extend_DataWriter_User extends XFCP_LiamW_Passw
 
 		if ($passwordCriteria['min_special'] || $passwordCriteria['max_special'])
 		{
-			if (preg_match_all('#[^\w]#iu', $password, $matches))
-			{
-				if (count($matches[0]) < $passwordCriteria['min_special'] || count($matches[0]) > $passwordCriteria['max_special'])
-				{
-					$errors[] = new XenForo_Phrase('liam_passwordRequirements_must_contain_between_x_and_x_special_characters',
-						array(
-							'min' => $passwordCriteria['min_special'],
-							'max' => $passwordCriteria['max_special']
-						));
-				}
-			}
-			else if ($passwordCriteria['min_special'])
+			if (!preg_match_all('#[^\w]#iu', $password,
+					$matches) || count($matches[0]) < $passwordCriteria['min_special'] || count($matches[0]) > $passwordCriteria['max_special']
+			)
 			{
 				$errors[] = new XenForo_Phrase('liam_passwordRequirements_must_contain_between_x_and_x_special_characters',
 					array(
@@ -158,6 +154,14 @@ class LiamW_PasswordRequirements_Extend_DataWriter_User extends XFCP_LiamW_Passw
 				'data' => $this->$method('data', 'xf_user_authenticate')
 			));
 		}
+	}
+
+	/**
+	 * @return LiamW_PasswordRequirements_Model_PasswordBlacklist
+	 */
+	protected function _getPasswordBlacklistModel()
+	{
+		return $this->getModelFromCache('LiamW_PasswordRequirements_Model_PasswordBlacklist');
 	}
 }
 

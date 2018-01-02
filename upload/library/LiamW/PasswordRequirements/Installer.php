@@ -12,6 +12,7 @@ class LiamW_PasswordRequirements_Installer
 				initiation_date INT(10) UNSIGNED NOT NULL
 			) ENGINE=InnoDB
 		",
+		/* This is the same as the xf_user_authenticate table. */
 		'liam_pr_password_history' => "
 			CREATE TABLE IF NOT EXISTS liam_pr_password_history (
 				user_id INT(10) UNSIGNED NOT NULL,
@@ -20,14 +21,21 @@ class LiamW_PasswordRequirements_Installer
 				data MEDIUMBLOB NOT NULL,
 				INDEX user_id(user_id)
 			) ENGINE = InnoDB CHARACTER SET utf8 COLLATE utf8_general_ci
+		",
+		'liam_pr_password_blacklist' => "
+			CREATE TABLE IF NOT EXISTS liam_pr_password_blacklist (
+				word_id INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+				word BLOB NOT NULL,
+	  			active TINYINT(1) UNSIGNED NOT NULL DEFAULT 1
+			) ENGINE = InnoDB CHARACTER SET utf8 COLLATE utf8_general_ci
 		"
 	);
 
 	protected static function _canBeInstalled(&$error)
 	{
-		if (XenForo_Application::$versionId < 1030070)
+		if (XenForo_Application::$versionId < 1040070)
 		{
-			$error = 'XenForo 1.3.0+ is required. Please upgrade and then install.';
+			$error = 'XenForo 1.4.0+ is required. Please upgrade and then install.';
 
 			return false;
 		}
