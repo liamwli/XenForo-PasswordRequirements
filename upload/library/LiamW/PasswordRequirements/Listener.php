@@ -17,28 +17,29 @@ class LiamW_PasswordRequirements_Listener
 		/** @var LiamW_PasswordRequirements_Model_ForcePasswordChange $forcePasswordChangeModel */
 		$forcePasswordChangeModel = XenForo_Model::create('LiamW_PasswordRequirements_Model_ForcePasswordChange');
 
+		// If this is true we don't need an error message. Save the query.
+		if ($controller instanceof XenForo_ControllerPublic_Error || $controller->getRequest()->isPost() || $controller->getInput()->filterSingle('_xfNoRedirect', XenForo_Input::UINT))
+		{
+			return;
+		}
+
 		if ($forcePasswordChangeModel->isPasswordChangeRequired($errorPhraseKey))
 		{
-			XenForo_Application::set('liam_forceChangeRequired', $errorPhraseKey);
-
-			// Do this here, so that we set the error message for the password template if we redirect.
-			if ($controller instanceof XenForo_ControllerAdmin_Abstract || $controller instanceof XenForo_ControllerPublic_Error || ($controller instanceof XenForo_ControllerPublic_Account && ($action == 'Security' || $action = 'SecuritySave')))
+			// We need to change the password, but they're on the change password page. Stop the redirection from happening, and set the error 'global'
+			if (($controller instanceof XenForo_ControllerPublic_Account) && ($action == 'Security' || $action == 'SecuritySave'))
 			{
+				XenForo_Application::set('liam_forceChangeRequired', $errorPhraseKey);
+
 				return;
 			}
 
-			throw $controller->responseException(
-				$controller->responseRedirect(XenForo_ControllerResponse_Redirect::SUCCESS,
-					XenForo_Link::buildPublicLink('account/security'),
-					new XenForo_Phrase($errorPhraseKey))
-			);
+			throw $controller->responseException($controller->responseRedirect(XenForo_ControllerResponse_Redirect::SUCCESS, XenForo_Link::buildPublicLink('account/security'), new XenForo_Phrase($errorPhraseKey)));
 		}
 	}
 
 	public static function controllerPostDispatch(XenForo_Controller $controller, $controllerResponse, $controllerName, $action)
 	{
-		if ($action == 'Security' && $controllerResponse instanceof XenForo_ControllerResponse_View && XenForo_Application::isRegistered('liam_forceChangeRequired')
-		)
+		if ($action == 'Security' && $controllerResponse instanceof XenForo_ControllerResponse_View && XenForo_Application::isRegistered('liam_forceChangeRequired'))
 		{
 			$controllerResponse->subView->params['forceText'] = new XenForo_Phrase(XenForo_Application::get('liam_forceChangeRequired'));
 		}
