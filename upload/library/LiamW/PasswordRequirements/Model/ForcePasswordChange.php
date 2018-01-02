@@ -12,6 +12,12 @@ class LiamW_PasswordRequirements_Model_ForcePasswordChange extends XenForo_Model
 		);
 	}
 
+	public function getUserBasedForcedChanges()
+	{
+		return $this->_getDb()
+			->fetchPairs('SELECT user_id,initiation_date FROM liam_pr_force_change WHERE user_id > 0');
+	}
+
 	public function isPasswordChangeRequired(&$errorPhraseKey, array $viewingUser = null)
 	{
 		$this->standardizeViewingUserReference($viewingUser);
@@ -48,5 +54,12 @@ class LiamW_PasswordRequirements_Model_ForcePasswordChange extends XenForo_Model
 		}
 
 		return $changeRequired;
+	}
+
+	public function getHistoricPasswordDataForUser($userId, $limit)
+	{
+		return $this->_getDb()
+			->fetchAll($this->limitQueryResults('SELECT scheme_class,data FROM liam_pr_password_history WHERE user_id=? ORDER BY change_date DESC',
+				$limit), $userId);
 	}
 }

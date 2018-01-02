@@ -11,14 +11,23 @@ class LiamW_PasswordRequirements_Installer
 				user_id INT(10) UNSIGNED NOT NULL,
 				initiation_date INT(10) UNSIGNED NOT NULL
 			) ENGINE=InnoDB
+		",
+		'liam_pr_password_history' => "
+			CREATE TABLE IF NOT EXISTS liam_pr_password_history (
+				user_id INT(10) UNSIGNED NOT NULL,
+				change_date INT(10) UNSIGNED NOT NULL,
+				scheme_class VARCHAR(75) NOT NULL,
+				data MEDIUMBLOB NOT NULL,
+				INDEX user_id(user_id)
+			) ENGINE = InnoDB CHARACTER SET utf8 COLLATE utf8_general_ci
 		"
 	);
 
 	protected static function _canBeInstalled(&$error)
 	{
-		if (XenForo_Application::$versionId < 1040070)
+		if (XenForo_Application::$versionId < 1030070)
 		{
-			$error = 'XenForo 1.4.0+ is required. Please upgrade and then install.';
+			$error = 'XenForo 1.3.0+ is required. Please upgrade and then install.';
 
 			return false;
 		}

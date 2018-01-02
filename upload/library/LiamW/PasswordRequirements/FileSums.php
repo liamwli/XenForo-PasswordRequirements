@@ -13,11 +13,12 @@ class LiamW_PasswordRequirements_FileSums
 	public static function getHashes()
 	{
 		return array(
+			'library/LiamW/PasswordRequirements/Cron/CleanUp.php' => '4bac671c997334fbc1aa47694f58445f',
 			'library/LiamW/PasswordRequirements/Extend/ControllerAdmin/User.php' => 'f3c17186874a8e12a4467283544e8f07',
-			'library/LiamW/PasswordRequirements/Extend/DataWriter/User.php' => 'e1a4446e0e9a537c60b76e4b0e3506e8',
-			'library/LiamW/PasswordRequirements/Installer.php' => '7c0104dcc6ca0aadaafab09d6c567765',
+			'library/LiamW/PasswordRequirements/Extend/DataWriter/User.php' => '9f50092efa912bfb46f857c5304f13e7',
+			'library/LiamW/PasswordRequirements/Installer.php' => '89c3bbc0711c755e378ca4bba84280ac',
 			'library/LiamW/PasswordRequirements/Listener.php' => 'bb638dd0122e596e6e82e90fdf76169b',
-			'library/LiamW/PasswordRequirements/Model/ForcePasswordChange.php' => '319a2f1d09d3871f42859a23b66532eb',
+			'library/LiamW/PasswordRequirements/Model/ForcePasswordChange.php' => '9211745af9f716eda8a02a27685d9abe',
 		);
 	}
 }
