@@ -12,6 +12,11 @@ class LiamW_PasswordRequirements_Listener
 		$extend[] = 'LiamW_PasswordRequirements_Extend_DataWriter_User';
 	}
 
+	public static function extendAccountController($class, array &$extend)
+	{
+		$extend[] = 'LiamW_PasswordRequirements_Extend_ControllerPublic_Account';
+	}
+
 	public static function controllerPreDispatch(XenForo_Controller $controller, $action)
 	{
 		/** @var LiamW_PasswordRequirements_Model_ForcePasswordChange $forcePasswordChangeModel */
@@ -32,6 +37,12 @@ class LiamW_PasswordRequirements_Listener
 
 				return;
 			}
+
+			$root = XenForo_Application::getFc()->getDependencies()->getRouter()->getRoutePath($controller->getRequest());
+
+			$method = ($controller instanceof XenForo_ControllerPublic_Abstract) ? 'buildPublicLink' : 'buildAdminLink';
+
+			XenForo_Application::setSimpleCacheData('liam_passwordRequirements_required_redirect', XenForo_Link::$method($root, $action));
 
 			throw $controller->responseException($controller->responseRedirect(XenForo_ControllerResponse_Redirect::SUCCESS, XenForo_Link::buildPublicLink('account/security'), new XenForo_Phrase($errorPhraseKey)));
 		}
